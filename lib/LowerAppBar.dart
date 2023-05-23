@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:app_continental/helpers/flutterfont.dart';
+import 'package:app_continental/factory_lines.dart';
 
 class LowerAppBar extends StatelessWidget implements PreferredSizeWidget {
   const LowerAppBar({super.key});
@@ -38,7 +39,12 @@ class LowerAppBar extends StatelessWidget implements PreferredSizeWidget {
             tooltip: 'Gestão de Linhas',
             icon: const Icon(FlutterFontIcons.lines),
             iconSize: 40,
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const FactoryLines()),
+              );
+            },
           ),
           // const Spacer(),
           const SizedBox(width: 20),
