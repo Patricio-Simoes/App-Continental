@@ -25,7 +25,7 @@ class _FactoryLinesState extends State<FactoryLines> {
             child: Row(
               children: [
                 const Padding(
-                  padding: EdgeInsets.only(left: 34),
+                  padding: EdgeInsets.fromLTRB(12, 16, 0, 16),
                   child: Text(
                     'Linhas Disponíveis',
                     style: TextStyle(fontSize: 30),
@@ -33,11 +33,6 @@ class _FactoryLinesState extends State<FactoryLines> {
                 ),
                 const Padding(
                   padding:  EdgeInsets.only(left: 150),
-                  child: Icon(
-                    Icons.search,
-                    color: Colors.white,
-                    size: 24,
-                  ),
                 ),
                 const SizedBox(width: 4),
                 Expanded(
