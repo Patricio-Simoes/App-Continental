@@ -267,7 +267,6 @@ class _HomeState extends State<Home> {
             color: Colors.grey,
             width: double.infinity,
             child: const Row(
-
               children: [
                 Padding(
                   padding: EdgeInsets.fromLTRB(12, 16, 0, 16),

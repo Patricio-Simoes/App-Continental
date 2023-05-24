@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:app_continental/helpers/flutterfont.dart';
 import 'package:app_continental/factory_lines.dart';
+import 'admin-panel.dart';
+import 'home.dart';
+import 'alerts.dart';
 
 class LowerAppBar extends StatelessWidget implements PreferredSizeWidget {
   const LowerAppBar({super.key});
@@ -19,7 +22,10 @@ class LowerAppBar extends StatelessWidget implements PreferredSizeWidget {
             icon: const Icon(Icons.home),
             iconSize: 40,
             onPressed: () {
-              // Handle menu button press
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const Home()),
+              );
             },
           ),
           //  const Spacer(),
@@ -29,7 +35,10 @@ class LowerAppBar extends StatelessWidget implements PreferredSizeWidget {
             icon: const Icon(FlutterFontIcons.admin),
             iconSize: 40,
             onPressed: () {
-              // Handle menu button press
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const adminPanel()),
+              );
             },
           ),
 
@@ -52,7 +61,11 @@ class LowerAppBar extends StatelessWidget implements PreferredSizeWidget {
             tooltip: 'Alertas Recebidos',
             icon: const Icon(FlutterFontIcons.alert),
             iconSize: 40,
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const Alerts()),
+              );},
           ),
         ],
       ),
