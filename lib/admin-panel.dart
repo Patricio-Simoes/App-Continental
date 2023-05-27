@@ -1,5 +1,6 @@
 import 'package:app_continental/LowerAppBar.dart';
 import 'package:app_continental/TopAppBar.dart';
+import 'package:app_continental/register_user.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -32,36 +33,43 @@ class _adminPanelState extends State<adminPanel> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: Colors.black,
-                        width: 2.0,
-                      ),
-                    ),
-                    child: SizedBox(
-                      width: 250,
-                      height: 250,
-                      child: Container(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            Image.asset(
-                              "assets/images/register-user.png",
-                              width: 150,
-                              height: 150,
-                            ),
-                            Text(
-                              "Registar Utilizador",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 24,
-                              ),
-                            )
-                          ],
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Colors.black,
+                          width: 2.0,
                         ),
                       ),
-                    ),
-                  ),
+                      child: SizedBox(
+                        width: 250,
+                        height: 250,
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const register_user()),
+                            );
+                          },
+                          child: Container(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Image.asset(
+                                  "assets/images/register-user.png",
+                                  width: 150,
+                                  height: 150,
+                                ),
+                                Text(
+                                  "Registar Utilizador",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 24,
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                        ),
+                      )),
                   Container(
                     decoration: BoxDecoration(
                       border: Border.all(
