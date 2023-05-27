@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:app_continental/helpers/flutterfont.dart';
 import 'package:app_continental/factory_lines.dart';
 import 'admin-panel.dart';
-import 'home.dart';
 import 'alerts.dart';
 
 class LowerAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -13,23 +12,11 @@ class LowerAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return BottomAppBar(
+      height: 75,
       color: Colors.orange,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          IconButton(
-            tooltip: 'Home',
-            icon: const Icon(Icons.home),
-            iconSize: 40,
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const Home()),
-              );
-            },
-          ),
-          //  const Spacer(),
-          const SizedBox(width: 20),
           IconButton(
             tooltip: 'Painel de Administração',
             icon: const Icon(FlutterFontIcons.admin),
@@ -41,9 +28,6 @@ class LowerAppBar extends StatelessWidget implements PreferredSizeWidget {
               );
             },
           ),
-
-          //  const Spacer(),
-          const SizedBox(width: 20),
           IconButton(
             tooltip: 'Gestão de Linhas',
             icon: const Icon(FlutterFontIcons.lines),
@@ -55,8 +39,6 @@ class LowerAppBar extends StatelessWidget implements PreferredSizeWidget {
               );
             },
           ),
-          // const Spacer(),
-          const SizedBox(width: 20),
           IconButton(
             tooltip: 'Alertas Recebidos',
             icon: const Icon(FlutterFontIcons.alert),

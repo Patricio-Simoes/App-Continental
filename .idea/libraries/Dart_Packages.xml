@@ -68,7 +68,7 @@
         <entry key="flutter">
           <value>
             <list>
-              <option value="$USER_HOME$/snap/flutter/common/flutter/packages/flutter/lib" />
+              <option value="$USER_HOME$/development/flutter/packages/flutter/lib" />
             </list>
           </value>
         </entry>
@@ -152,7 +152,7 @@
         <entry key="sky_engine">
           <value>
             <list>
-              <option value="$USER_HOME$/snap/flutter/common/flutter/bin/cache/pkg/sky_engine/lib" />
+              <option value="$USER_HOME$/development/flutter/bin/cache/pkg/sky_engine/lib" />
             </list>
           </value>
         </entry>
@@ -235,8 +235,8 @@
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/vector_math-2.1.4/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/xml-6.3.0/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/yaml-3.1.2/lib" />
-      <root url="file://$USER_HOME$/snap/flutter/common/flutter/bin/cache/pkg/sky_engine/lib" />
-      <root url="file://$USER_HOME$/snap/flutter/common/flutter/packages/flutter/lib" />
+      <root url="file://$USER_HOME$/development/flutter/bin/cache/pkg/sky_engine/lib" />
+      <root url="file://$USER_HOME$/development/flutter/packages/flutter/lib" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

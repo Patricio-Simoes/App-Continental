@@ -2,7 +2,7 @@ import 'package:app_continental/LowerAppBar.dart';
 import 'package:app_continental/TopAppBar.dart';
 import 'package:flutter/material.dart';
 
-void main(){
+void main() {
   runApp(const MaterialApp(
     home: adminPanel(),
     debugShowCheckedModeBanner: false,
@@ -20,14 +20,15 @@ class _adminPanelState extends State<adminPanel> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: TopAppBar(),
+      appBar:
+          PreferredSize(preferredSize: Size.fromHeight(75), child: TopAppBar()),
       body: Container(
         width: double.infinity,
         child: Column(
           children: [
-            Padding(padding: EdgeInsets.fromLTRB(128,72,128,24),
-              child:
-              Row(
+            Padding(
+              padding: EdgeInsets.fromLTRB(128, 72, 128, 24),
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
@@ -44,11 +45,13 @@ class _adminPanelState extends State<adminPanel> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            Image.asset("assets/images/register-user.png",
+                            Image.asset(
+                              "assets/images/register-user.png",
                               width: 150,
                               height: 150,
                             ),
-                            Text("Registar Utilizador",
+                            Text(
+                              "Registar Utilizador",
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 24,
@@ -73,11 +76,13 @@ class _adminPanelState extends State<adminPanel> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            Image.asset("assets/images/users-list.png",
+                            Image.asset(
+                              "assets/images/users-list.png",
                               height: 150,
                               width: 150,
                             ),
-                            Text("Lista de Utilizadores",
+                            Text(
+                              "Lista de Utilizadores",
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 24,
@@ -91,9 +96,9 @@ class _adminPanelState extends State<adminPanel> {
                 ],
               ),
             ),
-            Padding(padding: EdgeInsets.fromLTRB(128,72,128,24),
-              child:
-              Row(
+            Padding(
+              padding: EdgeInsets.fromLTRB(128, 72, 128, 24),
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Container(
@@ -110,11 +115,13 @@ class _adminPanelState extends State<adminPanel> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            Image.asset("assets/images/create-line.png",
+                            Image.asset(
+                              "assets/images/create-line.png",
                               width: 150,
                               height: 150,
                             ),
-                            Text("Gerir Linhas",
+                            Text(
+                              "Gerir Linhas",
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 24,
