@@ -11,6 +11,15 @@ class login extends StatefulWidget {
 }
 
 class _loginState extends State<login> {
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+
+
+  //Navigator.push(
+  //context,
+  //MaterialPageRoute(builder: (context) => const Home())
+  //)
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -36,7 +45,7 @@ class _loginState extends State<login> {
                       child: Padding(
                         padding: EdgeInsets.only(bottom: 16),
                         child: Text(
-                          "Nome de Utilizador:",
+                          "Email do Utilizador:",
                           style: TextStyle(
                               fontWeight: FontWeight.bold, fontSize: 24),
                         ),
@@ -85,12 +94,8 @@ class _loginState extends State<login> {
                         child: Padding(
                           padding: const EdgeInsets.only(left: 16, right: 16),
                           child: ElevatedButton(
-                            onPressed: (){
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => const Home()),
-                              );
-                            },
+                            // Lógica de SignIn
+                            onPressed: null,
                             style: ButtonStyle(
                                 backgroundColor:
                                     MaterialStateProperty.all<Color>(
