@@ -1,3 +1,5 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'TopAppBar.dart';
 import 'LowerAppBar.dart';
@@ -11,14 +13,73 @@ class login extends StatefulWidget {
 }
 
 class _loginState extends State<login> {
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
+  // Responsável por receber as credenciais no campo de email.
+  TextEditingController _emailController = TextEditingController();
+  // Responsável por receber as credenciais no campo de password.
+  TextEditingController _passwordController = TextEditingController();
 
-
-  //Navigator.push(
-  //context,
-  //MaterialPageRoute(builder: (context) => const Home())
-  //)
+  Future _efetuarLogin() async{
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: _emailController.text,
+          password: _passwordController.text
+      );
+    }
+    on FirebaseAuthException catch (e){
+      if (e.code == 'user-not-found' || e.code == 'invalid-email' || e.code == 'wrong-password' || e.code == 'unknown'){
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text("ERRO :: Credenciais Inválidas"),
+              titlePadding: EdgeInsets.all(32),
+              titleTextStyle: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+              content: Text("As credenciais que inseriu não estão corretas. Por favor, tente novamente, ou contacte um Administrador do sistema."),
+              contentPadding: EdgeInsets.only(left: 32, right: 32),
+              contentTextStyle: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+                color: Colors.black,
+              ),
+              backgroundColor: Colors.orange,
+              actions: [
+                Padding(
+                  padding: EdgeInsets.only(right: 32, bottom: 16),
+                  child: ElevatedButton(
+                    onPressed: (){
+                      Navigator.pop(context);
+                    },
+                    child:
+                    Text("OK",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                      backgroundColor: Colors.blue,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                    ),
+                  ),
+                )
+              ],
+            );},
+        );
+      }
+      else {
+        // Handle other FirebaseAuthException codes if needed
+        print('A autenticação falhou com o código de erro: ${e.code}');
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,11 +111,12 @@ class _loginState extends State<login> {
                               fontWeight: FontWeight.bold, fontSize: 24),
                         ),
                       )),
-                  const Padding(
+                  Padding(
                       padding: EdgeInsets.only(left: 16, right: 16),
                       child: Padding(
                         padding: EdgeInsets.only(left: 16, right: 16),
                         child: TextField(
+                          controller: _emailController,
                           keyboardType: TextInputType.text,
                           decoration: InputDecoration(
                             filled: true,
@@ -74,11 +136,12 @@ class _loginState extends State<login> {
                           ),
                         ),
                       )),
-                  const Padding(
+                  Padding(
                       padding: EdgeInsets.only(left: 16, right: 16),
                       child: Padding(
                         padding: EdgeInsets.only(left: 16, right: 16),
                         child: TextField(
+                          controller: _passwordController,
                           obscureText: true,
                           keyboardType: TextInputType.text,
                           decoration: InputDecoration(
@@ -94,8 +157,8 @@ class _loginState extends State<login> {
                         child: Padding(
                           padding: const EdgeInsets.only(left: 16, right: 16),
                           child: ElevatedButton(
-                            // Lógica de SignIn
-                            onPressed: null,
+                            // Função que trata da lógica de Login.
+                            onPressed: _efetuarLogin,
                             style: ButtonStyle(
                                 backgroundColor:
                                     MaterialStateProperty.all<Color>(

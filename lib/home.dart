@@ -1,12 +1,13 @@
 import 'dart:math';
-
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:app_continental/TopAppBar.dart';
 import 'package:app_continental/LowerAppBar.dart';
 import 'package:app_continental/helpers/flutterfont.dart';
 
 class Home extends StatefulWidget {
-  const Home({super.key});
+  String? emailUtilizador = "";
+  Home({this.emailUtilizador});
 
   @override
   State<Home> createState() => _HomeState();
@@ -38,33 +39,25 @@ class _HomeState extends State<Home> {
                 color: Colors.black,
               ),
               onPressed: () {
-                Navigator.pop(context);
+                FirebaseAuth.instance.signOut();
               },
             ),
           ),
-          actions: const <Widget>[
+          actions: <Widget>[
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                  Text(
-                    "Bem-Vindo: Vladimir Schputnik",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 24,
-                      color: Colors.black,
-                    ),
-                  ),
                 Padding(
-                  padding: EdgeInsets.only(right: 8),
-                  child: IconButton(
-                    icon: Icon(
-                      Icons.emoji_emotions,
-                      size: 30,
-                      color: Colors.black,
+                    padding: EdgeInsets.only(right: 16),
+                    child: Text(
+                      "Bem-Vindo, ${widget.emailUtilizador}!",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 24,
+                        color: Colors.black,
+                      ),
                     ),
-                    onPressed: null,
-                  ),
-                )
+                ),
               ],
             ),
           ],
