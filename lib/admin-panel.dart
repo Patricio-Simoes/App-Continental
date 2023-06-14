@@ -1,6 +1,6 @@
 import 'package:app_continental/LowerAppBar.dart';
 import 'package:app_continental/TopAppBar.dart';
-import 'package:app_continental/register_user.dart';
+import 'package:app_continental/handle_users.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -46,7 +46,7 @@ class _adminPanelState extends State<adminPanel> {
                           onTap: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => const register_user()),
+                              MaterialPageRoute(builder: (context) => handle_users(header: "Registo de Utilizador:",)),
                             );
                           },
                           child: Container(

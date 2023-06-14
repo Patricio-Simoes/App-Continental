@@ -20,6 +20,7 @@ Future main() async{
       builder: (context,snapshot){
         // Caso esteja, redireciona para a página principal.
         if(snapshot.hasData) {
+          print(FirebaseAuth.instance.currentUser);
           return Home(emailUtilizador: FirebaseAuth.instance.currentUser?.displayName.toString());
         }
         else{
