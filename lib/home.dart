@@ -1,12 +1,18 @@
+import 'dart:convert';
 import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:app_continental/TopAppBar.dart';
 import 'package:app_continental/LowerAppBar.dart';
 import 'package:app_continental/helpers/flutterfont.dart';
+import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
+
+import 'AvariaNotification.dart';
 
 class Home extends StatefulWidget {
   String? emailUtilizador = "";
+
   Home({this.emailUtilizador});
 
   @override
@@ -14,9 +20,75 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  bool isChecked_A1 = false;
-  bool isChecked_A2 = false;
-  bool isChecked_A3 = false;
+
+  // Número de linhas de produção disponíveis.
+  int nLinhas = 45;
+
+  Future<String?> getToken() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    return user?.getIdToken();
+  }
+
+  // Método responsável por receber as avarias enviadas pela API.
+  Future<List<AvariaNotification>> getAvarias() async {
+    final token = await getToken();
+    final url = Uri.http('192.168.28.86:7071', 'Alert/GetMaintenanceMessages');
+    print("Token: $token");
+
+    final response = await http.get(
+      url,
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    print("Código de resposta: ${response.statusCode}");
+    final body = jsonDecode(response.body);
+    print("Corpo de mensagem: $body");
+
+    if (body is List) {
+      final notifications = body
+          .map<AvariaNotification>((json) => AvariaNotification.fromJson(json))
+          .toList();
+
+      return notifications;
+    } else {
+      throw Exception('Invalid response body');
+    }
+  }
+
+  // Método responsável por enviar novas avarias para a API.
+  void sendAvaria() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    String? token = await user?.getIdToken();
+    String funcionarioId = user?.displayName ?? '';
+    int linhaId = 40;
+
+    final dio = Dio();
+
+    dio.options.headers['content-Type'] = 'application/json';
+    dio.options.headers["authorization"] = "Bearer ${token ?? ''}";
+
+    final data = {
+      'id': 0,
+      'funcionarioId': funcionarioId,
+      'linhaId': linhaId,
+      'tipo': 'Avaria',
+      'prioridade': '1',
+      'estado': true,
+      'criacao': DateTime.now().toIso8601String(),
+    };
+
+    try {
+      Response response = await dio
+          .post('http://192.168.28.86:7071/Alert/SendAlert', data: data);
+      print(response);
+    } on DioError catch (e) {
+      print('Error: ${e.error}');
+      print('Error info: ${e.response?.data}');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,16 +119,37 @@ class _HomeState extends State<Home> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                IconButton(
+                  icon: Icon(
+                    Icons.refresh,
+                    size: 30,
+                    color: Colors.black,
+                  ),
+                  onPressed: () async {
+                    List<AvariaNotification> avarias = await getAvarias();
+                    print("List de avarias: ${avarias}");
+                  },
+                ),
+                IconButton(
+                  icon: Icon(
+                    Icons.send,
+                    size: 30,
+                    color: Colors.black,
+                  ),
+                  onPressed: () {
+                    sendAvaria();
+                  },
+                ),
                 Padding(
-                    padding: EdgeInsets.only(right: 16),
-                    child: Text(
-                      "Bem-Vindo, ${widget.emailUtilizador}!",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 24,
-                        color: Colors.black,
-                      ),
+                  padding: EdgeInsets.only(right: 16),
+                  child: Text(
+                    "Bem-Vindo, ${widget.emailUtilizador}!",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 24,
+                      color: Colors.black,
                     ),
+                  ),
                 ),
               ],
             ),
@@ -70,7 +163,7 @@ class _HomeState extends State<Home> {
           Container(
             color: Colors.grey,
             width: double.infinity,
-            child: const Row(
+            child: Row(
               children: [
                 Padding(
                     padding: EdgeInsets.all(12),
@@ -104,169 +197,76 @@ class _HomeState extends State<Home> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  // Alerta.
-                  Container(
-                      color: Colors.red,
-                      width: double.infinity,
-                      child: Padding(
-                        padding: EdgeInsets.all(12),
-                        child: Row(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(4, 8, 0, 8),
-                              child: Image.asset(
-                                'assets/images/warning.png',
-                                width: 50,
-                                height: 50,
-                              ),
-                            ),
-                            const SizedBox(
-                              width: 20,
-                            ),
-                            const Expanded(
-                                child: Padding(
-                              padding: EdgeInsets.only(left: 12),
-                              child: Text(
-                                'Linha 19 - Avaria nv.3',
-                                style: TextStyle(
-                                  fontSize: 30,
-                                  fontWeight: FontWeight.w400,
+                  FutureBuilder<List<AvariaNotification>>(
+                    future: getAvarias(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData) {
+                        final alertas = snapshot.data!;
+                        return SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.40,
+                          child: ListView.builder(
+                            itemCount: alertas.length,
+                            itemBuilder: (context, index) {
+                              final avaria = alertas[index];
+                              Color avariaTileColor;
+                              if (avaria.prioridade == '1') {
+                                avariaTileColor = Colors.green;
+                              } else if (avaria.prioridade == '2') {
+                                avariaTileColor = Colors.yellow;
+                              } else if (avaria.prioridade == '3') {
+                                avariaTileColor = Colors.red;
+                              } else {
+                                avariaTileColor = Colors.transparent;
+                              }
+                              return Container(
+                                color: avariaTileColor,
+                                child: ListTile(
+                                  leading: Icon(
+                                    Icons.add_alert,
+                                    size: 50,
+                                    color: Colors.black,
+                                  ),
+                                  title: Text(
+                                      "Linha ${avaria.linhaID.toString()}",
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 24,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                      "Avaria nv.${avaria.prioridade.toString()}",
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.w400,
+                                      fontSize: 20,
+                                    ),
+                                  ),
+                                  trailing: Checkbox(
+                                    value: !avaria.estado ?? false,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        avaria.estado = !(value ?? true);
+                                      });
+                                    },
+                                  ),
                                 ),
-                              ),
-                            )),
-                            Container(
-                              width: 50,
-                              height: 50,
-                              alignment: Alignment.center,
-                              child: Transform.scale(
-                                scale: 1.5,
-                                // Adjust the scale factor to fit the container
-                                child: Checkbox(
-                                  value: isChecked_A1,
-                                  onChanged: (bool? newValue) {
-                                    setState(() {
-                                      isChecked_A1 = newValue!;
-                                    });
-                                  },
-                                  activeColor: Colors.grey,
-                                  materialTapTargetSize: MaterialTapTargetSize
-                                      .shrinkWrap, // Increases the checkbox size
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      )),
-                  // Alerta.
-                  Container(
-                      color: Colors.red,
-                      width: double.infinity,
-                      child: Padding(
-                        padding: EdgeInsets.all(12),
-                        child: Row(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(4, 8, 0, 8),
-                              child: Image.asset(
-                                'assets/images/warning.png',
-                                width: 50,
-                                height: 50,
-                              ),
-                            ),
-                            const SizedBox(
-                              width: 20,
-                            ),
-                            const Expanded(
-                                child: Padding(
-                              padding: EdgeInsets.only(left: 12),
-                              child: Text(
-                                'Linha 17 - Avaria nv.2',
-                                style: TextStyle(
-                                  fontSize: 30,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                            )),
-                            Container(
-                              width: 50,
-                              height: 50,
-                              alignment: Alignment.center,
-                              child: Transform.scale(
-                                scale: 1.5,
-                                // Adjust the scale factor to fit the container
-                                child: Checkbox(
-                                  value: isChecked_A2,
-                                  onChanged: (bool? newValue) {
-                                    setState(() {
-                                      isChecked_A2 = newValue!;
-                                    });
-                                  },
-                                  activeColor: Colors.grey,
-                                  materialTapTargetSize: MaterialTapTargetSize
-                                      .shrinkWrap, // Increases the checkbox size
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      )),
-                  // Alerta.
-                  Container(
-                      color: Colors.yellow,
-                      width: double.infinity,
-                      child: Padding(
-                        padding: EdgeInsets.all(12),
-                        child: Row(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(4, 8, 0, 8),
-                              child: Image.asset(
-                                'assets/images/warning.png',
-                                width: 50,
-                                height: 50,
-                              ),
-                            ),
-                            const SizedBox(
-                              width: 20,
-                            ),
-                            const Expanded(
-                                child: Padding(
-                              padding: EdgeInsets.only(left: 12),
-                              child: Text(
-                                'Linha 31 - Avaria nv.1',
-                                style: TextStyle(
-                                  fontSize: 30,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                            )),
-                            Container(
-                              width: 50,
-                              height: 50,
-                              alignment: Alignment.center,
-                              child: Transform.scale(
-                                scale: 1.5,
-                                // Adjust the scale factor to fit the container
-                                child: Checkbox(
-                                  value: isChecked_A3,
-                                  onChanged: (bool? newValue) {
-                                    setState(() {
-                                      isChecked_A3 = newValue!;
-                                    });
-                                  },
-                                  activeColor: Colors.grey,
-                                  materialTapTargetSize: MaterialTapTargetSize
-                                      .shrinkWrap, // Increases the checkbox size
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      )),
+                              );
+                            },
+                          ),
+                        );
+                      } else if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      } else {
+                        return CircularProgressIndicator();
+                      }
+                    },
+                  ),
                 ],
               ),
             ),
           ),
+
           // Cabeçalho "Linhas disponíveis".
           Container(
             color: Colors.grey,
@@ -306,328 +306,52 @@ class _HomeState extends State<Home> {
               child: Container(
                 child: Column(
                   children: [
-                    // Linha.
-                    Container(
-                      decoration: const BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(
-                            color: Colors.black,
-                            width: 2.0,
+                    for (int i = 0; i < nLinhas; i++)
+                      Container(
+                        decoration: const BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(
+                              color: Colors.black,
+                              width: 2.0,
+                            ),
                           ),
                         ),
-                      ),
-                      child: Row(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Image.asset(
-                              'assets/images/tap.png',
-                              width: 50,
-                              height: 50,
-                            ),
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.only(left: 20),
-                            child: Text(
-                              'Linha 1',
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 24,
+                        child: Row(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Image.asset(
+                                'assets/images/tap.png',
+                                width: 50,
+                                height: 50,
                               ),
                             ),
-                          ),
-                          const Spacer(),
-                          const Padding(
-                            padding: EdgeInsets.only(right: 20),
-                            child: Text(
-                              'Sem Problemas',
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 24,
+                            Padding(
+                              padding: EdgeInsets.only(left: 20),
+                              child: Text(
+                                'Linha ${i + 1}',
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 24,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Linha.
-                    Container(
-                      decoration: const BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(
-                            color: Colors.black,
-                            width: 2.0,
-                          ),
+                            const Spacer(),
+                            const Padding(
+                              padding: EdgeInsets.only(right: 20),
+                              child: Text(
+                                'Sem Problemas',
+                                style: TextStyle(
+                                  color: Colors.green,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 24,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      child: Row(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Image.asset(
-                              'assets/images/tap.png',
-                              width: 50,
-                              height: 50,
-                            ),
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.only(left: 20),
-                            child: Text(
-                              'Linha 2',
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 24,
-                              ),
-                            ),
-                          ),
-                          const Spacer(),
-                          const Padding(
-                            padding: EdgeInsets.only(right: 20),
-                            child: Text(
-                              'Sem Problemas',
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 24,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Linha.
-                    Container(
-                      decoration: const BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(
-                            color: Colors.black,
-                            width: 2.0,
-                          ),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Image.asset(
-                              'assets/images/tap.png',
-                              width: 50,
-                              height: 50,
-                            ),
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.only(left: 20),
-                            child: Text(
-                              'Linha 3',
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 24,
-                              ),
-                            ),
-                          ),
-                          const Spacer(),
-                          const Padding(
-                            padding: EdgeInsets.only(right: 20),
-                            child: Text(
-                              'Sem Problemas',
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 24,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Linha.
-                    Container(
-                      decoration: const BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(
-                            color: Colors.black,
-                            width: 2.0,
-                          ),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Image.asset(
-                              'assets/images/tap.png',
-                              width: 50,
-                              height: 50,
-                            ),
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.only(left: 20),
-                            child: Text(
-                              'Linha 4',
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 24,
-                              ),
-                            ),
-                          ),
-                          const Spacer(),
-                          const Padding(
-                            padding: EdgeInsets.only(right: 20),
-                            child: Text(
-                              'Sem Problemas',
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 24,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Linha.
-                    Container(
-                      decoration: const BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(
-                            color: Colors.black,
-                            width: 2.0,
-                          ),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Image.asset(
-                              'assets/images/tap.png',
-                              width: 50,
-                              height: 50,
-                            ),
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.only(left: 20),
-                            child: Text(
-                              'Linha 5',
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 24,
-                              ),
-                            ),
-                          ),
-                          const Spacer(),
-                          const Padding(
-                            padding: EdgeInsets.only(right: 20),
-                            child: Text(
-                              'Sem Problemas',
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 24,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Linha.
-                    Container(
-                      decoration: const BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(
-                            color: Colors.black,
-                            width: 2.0,
-                          ),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Image.asset(
-                              'assets/images/tap.png',
-                              width: 50,
-                              height: 50,
-                            ),
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.only(left: 20),
-                            child: Text(
-                              'Linha 6',
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 24,
-                              ),
-                            ),
-                          ),
-                          const Spacer(),
-                          const Padding(
-                            padding: EdgeInsets.only(right: 20),
-                            child: Text(
-                              'Sem Problemas',
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 24,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Linha.
-                    Container(
-                      decoration: const BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(
-                            color: Colors.black,
-                            width: 2.0,
-                          ),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Image.asset(
-                              'assets/images/tap.png',
-                              width: 50,
-                              height: 50,
-                            ),
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.only(left: 20),
-                            child: Text(
-                              'Linha 7',
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 24,
-                              ),
-                            ),
-                          ),
-                          const Spacer(),
-                          const Padding(
-                            padding: EdgeInsets.only(right: 20),
-                            child: Text(
-                              'Sem Problemas',
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 24,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   ],
                 ),
               ),

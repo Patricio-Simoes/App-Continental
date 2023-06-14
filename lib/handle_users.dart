@@ -86,7 +86,7 @@ class handle_usersState extends State<handle_users> {
                       color: Colors.black,
                     ),
                     // Botão de submissão do formulário.
-                    onPressed: _registerUser,
+                    onPressed: /*_registerUser*/(){},
                   ),
                 )
               ],
@@ -304,6 +304,16 @@ class handle_usersState extends State<handle_users> {
                       ),
                     ],
                   )),
+              Padding(
+                padding: EdgeInsets.only(top:32),
+                child: Text("NOTA: A gestão de utilizadores não está implementada",
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold
+                  ),
+              ),
+              )
             ],
           )),
       bottomNavigationBar: const LowerAppBar(),
