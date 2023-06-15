@@ -1,13 +1,11 @@
 import 'dart:math';
 import 'package:app_continental/home.dart';
-import 'package:dart_amqp/dart_amqp.dart';
 import 'package:flutter/material.dart';
 import 'login.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 
-// import 'app_bar.dart';
 Future main() async{
   // Comunicação com o Firebase
   WidgetsFlutterBinding.ensureInitialized();
