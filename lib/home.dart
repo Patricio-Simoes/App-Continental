@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
+import 'package:app_continental/create_alert.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:app_continental/TopAppBar.dart';
@@ -7,7 +8,6 @@ import 'package:app_continental/LowerAppBar.dart';
 import 'package:app_continental/helpers/flutterfont.dart';
 import 'package:http/http.dart' as http;
 import 'package:dio/dio.dart';
-
 import 'AvariaNotification.dart';
 
 class Home extends StatefulWidget {
@@ -20,7 +20,6 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-
   // Número de linhas de produção disponíveis.
   int nLinhas = 45;
 
@@ -58,38 +57,6 @@ class _HomeState extends State<Home> {
     }
   }
 
-  // Método responsável por enviar novas avarias para a API.
-  void sendAvaria() async {
-    User? user = FirebaseAuth.instance.currentUser;
-    String? token = await user?.getIdToken();
-    String funcionarioId = user?.displayName ?? '';
-    int linhaId = 40;
-
-    final dio = Dio();
-
-    dio.options.headers['content-Type'] = 'application/json';
-    dio.options.headers["authorization"] = "Bearer ${token ?? ''}";
-
-    final data = {
-      'id': 0,
-      'funcionarioId': funcionarioId,
-      'linhaId': linhaId,
-      'tipo': 'Avaria',
-      'prioridade': '1',
-      'estado': true,
-      'criacao': DateTime.now().toIso8601String(),
-    };
-
-    try {
-      Response response = await dio
-          .post('http://192.168.28.86:7071/Alert/SendAlert', data: data);
-      print(response);
-    } on DioError catch (e) {
-      print('Error: ${e.error}');
-      print('Error info: ${e.response?.data}');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -119,27 +86,6 @@ class _HomeState extends State<Home> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                IconButton(
-                  icon: Icon(
-                    Icons.refresh,
-                    size: 30,
-                    color: Colors.black,
-                  ),
-                  onPressed: () async {
-                    List<AvariaNotification> avarias = await getAvarias();
-                    print("List de avarias: ${avarias}");
-                  },
-                ),
-                IconButton(
-                  icon: Icon(
-                    Icons.send,
-                    size: 30,
-                    color: Colors.black,
-                  ),
-                  onPressed: () {
-                    sendAvaria();
-                  },
-                ),
                 Padding(
                   padding: EdgeInsets.only(right: 16),
                   child: Text(
@@ -185,9 +131,59 @@ class _HomeState extends State<Home> {
                             style: TextStyle(
                                 fontSize: 30, fontWeight: FontWeight.w600),
                           ),
-                        )
+                        ),
                       ],
                     )),
+                Expanded(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => CreateAlert(),
+                              ),
+                            );
+                          },
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: Padding(
+                              padding: EdgeInsets.only(right: 4),
+                              child: Text(
+                                "Emitir Alerta",
+                                style: TextStyle(fontSize: 30, fontWeight: FontWeight.w600),
+                                textAlign: TextAlign.right,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(right: 16),
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => CreateAlert(),
+                                ),
+                              );
+                            },
+                            child: IconButton(
+                              tooltip: null,
+                              icon: Icon(
+                                Icons.add_alert,
+                                size: 35,
+                                color: Colors.black,
+                              ),
+                              onPressed: null,
+                            ),
+                          ),
+                        ),
+                      ],
+                  )
+                )
               ],
             ),
           ),
@@ -227,7 +223,7 @@ class _HomeState extends State<Home> {
                                     color: Colors.black,
                                   ),
                                   title: Text(
-                                      "Linha ${avaria.linhaID.toString()}",
+                                    "Linha ${avaria.linhaID.toString()}",
                                     style: TextStyle(
                                       color: Colors.black,
                                       fontWeight: FontWeight.w500,
@@ -235,7 +231,7 @@ class _HomeState extends State<Home> {
                                     ),
                                   ),
                                   subtitle: Text(
-                                      "Avaria nv.${avaria.prioridade.toString()}",
+                                    "Avaria nv.${avaria.prioridade.toString()}",
                                     style: TextStyle(
                                       color: Colors.black,
                                       fontWeight: FontWeight.w400,
