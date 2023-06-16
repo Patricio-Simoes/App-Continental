@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
+import 'package:app_continental/alert_info.dart';
 import 'package:app_continental/create_alert.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -54,6 +55,32 @@ class _HomeState extends State<Home> {
       return notifications;
     } else {
       throw Exception('Invalid response body');
+    }
+  }
+
+  // Método responsável por marcar avarias existentes como resolvidas.
+  void updateAvaria(String? nLinha) async {
+    User? user = FirebaseAuth.instance.currentUser;
+    String? token = await user?.getIdToken();
+    String funcionarioId = user?.displayName ?? '';
+
+    final dio = Dio();
+
+    dio.options.headers['content-Type'] = 'application/json';
+    dio.options.headers["authorization"] = "Bearer ${token ?? ''}";
+
+    final data = {
+      'estado': false,
+    };
+
+    try {
+      Response response = await dio
+          .patch('http://192.168.28.86:7071/Alert/AcknowledgeMaintenanceMessage?id=${int.parse(nLinha!)}', data: data);
+      print(response);
+      print("Enviado com sucesso!");
+    } on DioError catch (e) {
+      print('Error: ${e.error}');
+      print('Error info: ${e.response?.data}');
     }
   }
 
@@ -197,7 +224,10 @@ class _HomeState extends State<Home> {
                     future: getAvarias(),
                     builder: (context, snapshot) {
                       if (snapshot.hasData) {
-                        final alertas = snapshot.data!;
+                        List<AvariaNotification> alertas = snapshot.data!;
+
+                        // Sort the alertas list based on prioridade
+                        alertas.sort((a, b) => int.parse(b.prioridade).compareTo(int.parse(a.prioridade)));
                         return SizedBox(
                           height: MediaQuery.of(context).size.height * 0.40,
                           child: ListView.builder(
@@ -216,35 +246,110 @@ class _HomeState extends State<Home> {
                               }
                               return Container(
                                 color: avariaTileColor,
-                                child: ListTile(
-                                  leading: Icon(
-                                    Icons.add_alert,
-                                    size: 50,
-                                    color: Colors.black,
-                                  ),
-                                  title: Text(
-                                    "Linha ${avaria.linhaID.toString()}",
-                                    style: TextStyle(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return AlertDialog(
+                                          title: Text('Linha ${avaria.linhaID.toString()}'),
+                                          titlePadding: EdgeInsets.all(32),
+                                          titleTextStyle: TextStyle(
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black,
+                                          ),
+                                          content: Text('Pretende marcar este alerta como resolvido ou ver mais detalhes?'),
+                                          contentPadding: EdgeInsets.only(left: 32, right: 32),
+                                          contentTextStyle: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.black,
+                                          ),
+                                          backgroundColor: Colors.orange,
+                                          actions: [
+                                            Padding(
+                                              padding: EdgeInsets.only(top: 16, right: 32, bottom: 16),
+                                              child: ElevatedButton(
+                                                onPressed: () {
+                                                  updateAvaria(avaria.linhaID.toString());
+                                                  Navigator.pop(context);
+                                                },
+                                                child:
+                                                Text("Marcar como Resolvido",
+                                                  style: TextStyle(
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                                style: ElevatedButton.styleFrom(
+                                                  padding: EdgeInsets.symmetric(
+                                                      horizontal: 32, vertical: 12),
+                                                  backgroundColor: Colors.blue,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.circular(5),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            Padding(
+                                              padding: EdgeInsets.only(top: 16, right: 16, bottom: 16),
+                                              child: ElevatedButton(
+                                                onPressed: () {
+                                                  Navigator.pop(context);
+                                                  Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                          builder: (context) => DisplayAlertInfo(avaria.funcionarioId, avaria.linhaID.toString(), avaria.tipo, avaria.prioridade, avaria.estado.toString(), avaria.criacao),
+                                                      )
+                                                  );
+                                                },
+                                                child:
+                                                Text("Ver Detalhes",
+                                                  style: TextStyle(
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                                style: ElevatedButton.styleFrom(
+                                                  padding: EdgeInsets.symmetric(
+                                                      horizontal: 32, vertical: 12),
+                                                  backgroundColor: Colors.blue,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.circular(5),
+                                                  ),
+                                                ),
+                                              ),
+                                            )
+                                          ],
+                                        );
+                                      },
+                                    );
+                                  },
+                                  child: ListTile(
+                                    leading: Icon(
+                                      Icons.add_alert,
+                                      size: 50,
                                       color: Colors.black,
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 24,
                                     ),
-                                  ),
-                                  subtitle: Text(
-                                    "Avaria nv.${avaria.prioridade.toString()}",
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.w400,
-                                      fontSize: 20,
+                                    title: Text(
+                                      "Linha ${avaria.linhaID.toString()}",
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 24,
+                                      ),
                                     ),
-                                  ),
-                                  trailing: Checkbox(
-                                    value: !avaria.estado ?? false,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        avaria.estado = !(value ?? true);
-                                      });
-                                    },
+                                    subtitle: Text(
+                                      "Avaria nv.${avaria.prioridade.toString()}",
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 20,
+                                      ),
+                                    ),
                                   ),
                                 ),
                               );
@@ -254,7 +359,13 @@ class _HomeState extends State<Home> {
                       } else if (snapshot.hasError) {
                         return Text('Error: ${snapshot.error}');
                       } else {
-                        return CircularProgressIndicator();
+                        return Container(
+                          alignment: Alignment.center,
+                          child: Padding(
+                            padding: EdgeInsets.only(top: 200),
+                            child: CircularProgressIndicator(),
+                          )
+                        );
                       }
                     },
                   ),

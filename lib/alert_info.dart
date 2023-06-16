@@ -1,55 +1,21 @@
-import 'package:dio/dio.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'LowerAppBar.dart';
 import 'helpers/flutterfont.dart';
 
-class CreateAlert extends StatefulWidget {
-  const CreateAlert({super.key});
+class DisplayAlertInfo extends StatefulWidget {
+  String? funcionarioId = "";
+  String? linhaId = "";
+  String? tipo = "";
+  String? prioridade = "";
+  String? estado = "";
+  String? criacao = "";
+  DisplayAlertInfo(this.funcionarioId, this.linhaId, this.tipo, this.prioridade, this.estado, this.criacao);
 
   @override
-  State<CreateAlert> createState() => _CreateAlertState();
+  State<DisplayAlertInfo> createState() => _DisplayAlertInfoState();
 }
 
-class _CreateAlertState extends State<CreateAlert> {
-  // Número de Linhas
-  int i = 45;
-  // Controllers dos campos do alerta inseridos pelo utilizador.
-  String? _nLinha = "";
-  String? _prioridade = "";
-
-  // Método responsável por enviar novas avarias para a API.
-  void sendAvaria(String? nLinha, String? prioridade) async {
-    User? user = FirebaseAuth.instance.currentUser;
-    String? token = await user?.getIdToken();
-    String funcionarioId = user?.displayName ?? '';
-
-    final dio = Dio();
-
-    dio.options.headers['content-Type'] = 'application/json';
-    dio.options.headers["authorization"] = "Bearer ${token ?? ''}";
-
-    final data = {
-      'id': 0,
-      'funcionarioId': funcionarioId,
-      'linhaId': int.parse(nLinha!),
-      'tipo': 'Avaria',
-      'prioridade': prioridade,
-      'estado': true,
-      'criacao': DateTime.now().toIso8601String(),
-    };
-
-    try {
-      Response response = await dio
-          .post('http://192.168.28.86:7071/Alert/SendAlert', data: data);
-      print(response);
-      print("Enviado com sucesso!");
-    } on DioError catch (e) {
-      print('Error: ${e.error}');
-      print('Error info: ${e.response?.data}');
-    }
-  }
-
+class _DisplayAlertInfoState extends State<DisplayAlertInfo> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -73,106 +39,6 @@ class _CreateAlertState extends State<CreateAlert> {
               Navigator.pop(context);
             },
           ),
-          actions: <Widget>[
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(right: 16),
-                  child: IconButton(
-                    icon: const Icon(
-                      Icons.check,
-                      size: 30,
-                      color: Colors.black,
-                    ),
-                    // Botão de submissão do formulário.
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: Text("Confirmação"),
-                            titlePadding: EdgeInsets.all(32),
-                            titleTextStyle: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
-                            content: Text("Tem a certeza que deseja emitir este alerta?"),
-                            contentPadding: EdgeInsets.only(left: 32, right: 32),
-                            contentTextStyle: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black,
-                            ),
-                            backgroundColor: Colors.orange,
-                            actions: [
-                              Padding(
-                                padding: EdgeInsets.only(right: 32, bottom: 16, top: 16),
-                                child: ElevatedButton(
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                  },
-                                  child:
-                                  Text("Não",
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    padding: EdgeInsets.symmetric(
-                                        horizontal: 32, vertical: 12),
-                                    backgroundColor: Colors.blue,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(5),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              // Sim
-                              Padding(
-                                padding: EdgeInsets.only(right: 16, bottom: 16, top: 16),
-                                child: ElevatedButton(
-                                  onPressed: () {
-                                    // Caso tenha inserido informações válidas.
-                                    if (_prioridade != "" && _nLinha != "" && _prioridade != null && _nLinha != null) {
-                                      sendAvaria(_nLinha.toString(), _prioridade.toString());
-                                    }
-                                    // Caso tenha inserido informações inválidas.
-                                    else {
-                                    }
-                                    Navigator.of(context).pop();
-                                  },
-                                  child:
-                                  Text("Sim",
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    padding: EdgeInsets.symmetric(
-                                        horizontal: 32, vertical: 12),
-                                    backgroundColor: Colors.blue,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(5),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    },
-                  ),
-                )
-              ],
-            ),
-          ],
         ),
       ),
       body: SizedBox(
@@ -200,7 +66,7 @@ class _CreateAlertState extends State<CreateAlert> {
                             Padding(
                               padding: const EdgeInsets.only(left: 16),
                               child: Text(
-                                'Emitir Alerta',
+                                'Detalhes do Alerta',
                                 style: const TextStyle(
                                     fontSize: 30, fontWeight: FontWeight.w600),
                               ),
@@ -236,7 +102,7 @@ class _CreateAlertState extends State<CreateAlert> {
                                   children: [
                                     const Padding(
                                       padding:
-                                          EdgeInsets.symmetric(vertical: 25),
+                                      EdgeInsets.symmetric(vertical: 25),
                                       child: Text(
                                         "Nome do Funcionário:",
                                         style: TextStyle(
@@ -251,9 +117,7 @@ class _CreateAlertState extends State<CreateAlert> {
                                       child: TextField(
                                         enabled: false,
                                         decoration: InputDecoration(
-                                          hintText: FirebaseAuth
-                                              .instance.currentUser?.displayName
-                                              .toString(),
+                                            hintText: widget.funcionarioId,
                                           border: OutlineInputBorder(
                                             borderSide: BorderSide(),
                                           ),
@@ -267,7 +131,7 @@ class _CreateAlertState extends State<CreateAlert> {
                                   children: [
                                     const Padding(
                                       padding:
-                                          EdgeInsets.symmetric(vertical: 25),
+                                      EdgeInsets.symmetric(vertical: 25),
                                       child: Text(
                                         "Nº de Linha:",
                                         style: TextStyle(
@@ -279,20 +143,13 @@ class _CreateAlertState extends State<CreateAlert> {
                                     Padding(
                                       padding: const EdgeInsets.symmetric(
                                           vertical: 10),
-                                      child: DropdownButtonFormField<String>(
-                                        items: List.generate(i, (index) {
-                                          return DropdownMenuItem<String>(
-                                            value: "${index + 1}",
-                                            child: Text("Linha ${index + 1}"),
-                                          );
-                                        }),
-                                        onChanged: (value) {
-                                          setState(() {
-                                            _nLinha = value;
-                                          });
-                                        },
+                                      child: TextField(
+                                        enabled: false,
                                         decoration: InputDecoration(
-                                          border: OutlineInputBorder(),
+                                          hintText: "Linha ${widget.linhaId}",
+                                          border: OutlineInputBorder(
+                                            borderSide: BorderSide(),
+                                          ),
                                         ),
                                       ),
                                     )
@@ -303,7 +160,7 @@ class _CreateAlertState extends State<CreateAlert> {
                                   children: [
                                     const Padding(
                                       padding:
-                                          EdgeInsets.symmetric(vertical: 25),
+                                      EdgeInsets.symmetric(vertical: 25),
                                       child: Text(
                                         "Grau de Prioridade:",
                                         style: TextStyle(
@@ -314,22 +171,14 @@ class _CreateAlertState extends State<CreateAlert> {
                                     ),
                                     Padding(
                                       padding: const EdgeInsets.symmetric(
-                                          vertical: 10
-                                      ),
-                                      child: DropdownButtonFormField<String>(
-                                        items: List.generate(3, (index) {
-                                          return DropdownMenuItem<String>(
-                                            value: "${index + 1}",
-                                            child: Text("${index + 1}"),
-                                          );
-                                        }),
-                                        onChanged: (value) {
-                                          setState(() {
-                                            _prioridade = value;
-                                          });
-                                        },
+                                          vertical: 10),
+                                      child: TextField(
+                                        enabled: false,
                                         decoration: InputDecoration(
-                                          border: OutlineInputBorder(),
+                                          hintText: widget.prioridade,
+                                          border: OutlineInputBorder(
+                                            borderSide: BorderSide(),
+                                          ),
                                         ),
                                       ),
                                     )
@@ -340,7 +189,7 @@ class _CreateAlertState extends State<CreateAlert> {
                                   children: [
                                     const Padding(
                                       padding:
-                                          EdgeInsets.symmetric(vertical: 25),
+                                      EdgeInsets.symmetric(vertical: 25),
                                       child: Text(
                                         "Estado do Alerta:",
                                         style: TextStyle(
@@ -369,7 +218,7 @@ class _CreateAlertState extends State<CreateAlert> {
                                   children: [
                                     const Padding(
                                       padding:
-                                          EdgeInsets.symmetric(vertical: 25),
+                                      EdgeInsets.symmetric(vertical: 25),
                                       child: Text(
                                         "Data de Criação:",
                                         style: TextStyle(
@@ -385,7 +234,7 @@ class _CreateAlertState extends State<CreateAlert> {
                                         enabled: false,
                                         decoration: InputDecoration(
                                           hintText:
-                                              DateTime.now().toIso8601String(),
+                                          DateTime.now().toIso8601String(),
                                           border: OutlineInputBorder(
                                             borderSide: BorderSide(),
                                           ),
