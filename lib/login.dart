@@ -44,7 +44,8 @@ class _loginState extends State<login> {
                 color: Colors.black,
               ),
               content: Text(
-                  "As credenciais que inseriu não estão corretas. Por favor, tente novamente, ou contacte um Administrador do sistema."),
+                  "As credenciais que inseriu não estão corretas. Por favor, tente novamente, ou contacte um Administrador do sistema."
+              ),
               contentPadding: EdgeInsets.only(left: 32, right: 32),
               contentTextStyle: TextStyle(
                 fontSize: 18,
