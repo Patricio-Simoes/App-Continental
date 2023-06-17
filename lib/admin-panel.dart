@@ -1,6 +1,7 @@
 import 'package:app_continental/LowerAppBar.dart';
 import 'package:app_continental/TopAppBar.dart';
 import 'package:app_continental/handle_users.dart';
+import 'package:app_continental/user_list.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -80,23 +81,31 @@ class _adminPanelState extends State<adminPanel> {
                     child: SizedBox(
                       width: 250,
                       height: 250,
-                      child: Container(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            Image.asset(
-                              "assets/images/users-list.png",
-                              height: 150,
-                              width: 150,
-                            ),
-                            Text(
-                              "Lista de Utilizadores",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 24,
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => UserList()),
+                          );
+                        },
+                        child: Container(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Image.asset(
+                                "assets/images/users-list.png",
+                                width: 150,
+                                height: 150,
                               ),
-                            )
-                          ],
+                              Text(
+                                "Lista de Utilizadores",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 24,
+                                ),
+                              )
+                            ],
+                          ),
                         ),
                       ),
                     ),

@@ -69,23 +69,32 @@ class _HomeState extends State<Home> {
     dio.options.headers['content-Type'] = 'application/json';
     dio.options.headers["authorization"] = "Bearer ${token ?? ''}";
 
-    final data = {
-      'estado': false,
-    };
-
     try {
       Response response = await dio
-          .patch('http://192.168.28.86:7071/Alert/AcknowledgeMaintenanceMessage?id=${int.parse(nLinha!)}', data: data);
+          .put('http://192.168.28.86:7071/Alert/AcknowledgeMaintenanceMessage?id=${int.parse(nLinha!)}');
       print(response);
-      print("Enviado com sucesso!");
+      print("Atualizado com sucesso!");
     } on DioError catch (e) {
       print('Error: ${e.error}');
       print('Error info: ${e.response?.data}');
     }
   }
 
+  List generateLinhas(List linhas){
+    for(int i = 0; i <= nLinhas; i++) {
+      Map<String, dynamic> linha = Map();
+      linha["titulo"] = "${i}";
+      linha["estado"] = "Sem Problemas";
+      linhas.add(linha);
+    }
+    return linhas;
+  }
+
   @override
   Widget build(BuildContext context) {
+
+    List Linhas = generateLinhas([]);
+
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(75),
@@ -225,7 +234,6 @@ class _HomeState extends State<Home> {
                     builder: (context, snapshot) {
                       if (snapshot.hasData) {
                         List<AvariaNotification> alertas = snapshot.data!;
-
                         // Sort the alertas list based on prioridade
                         alertas.sort((a, b) => int.parse(b.prioridade).compareTo(int.parse(a.prioridade)));
                         return SizedBox(
@@ -236,11 +244,18 @@ class _HomeState extends State<Home> {
                               final avaria = alertas[index];
                               Color avariaTileColor;
                               if (avaria.prioridade == '1') {
+                                Linhas[avaria.linhaID]["estado"] = "Avaria nv.1";
                                 avariaTileColor = Colors.green;
+                                print("Passei aqui no id: ${avaria.linhaID}");
+                                print("Estado da linha ${avaria.linhaID} : ${Linhas[avaria.linhaID]["estado"].toString()}");
                               } else if (avaria.prioridade == '2') {
                                 avariaTileColor = Colors.yellow;
+                                print("Passei aqui no id: ${avaria.linhaID}");
+                                Linhas[avaria.linhaID]["estado"] = "Avaria nv.2";
                               } else if (avaria.prioridade == '3') {
                                 avariaTileColor = Colors.red;
+                                print("Passei aqui no id: ${avaria.linhaID}");
+                                Linhas[avaria.linhaID]["estado"] = "Avaria nv.3";
                               } else {
                                 avariaTileColor = Colors.transparent;
                               }
@@ -272,7 +287,7 @@ class _HomeState extends State<Home> {
                                               padding: EdgeInsets.only(top: 16, right: 32, bottom: 16),
                                               child: ElevatedButton(
                                                 onPressed: () {
-                                                  updateAvaria(avaria.linhaID.toString());
+                                                  updateAvaria(avaria.id.toString());
                                                   Navigator.pop(context);
                                                 },
                                                 child:
@@ -435,8 +450,7 @@ class _HomeState extends State<Home> {
                             ),
                             Padding(
                               padding: EdgeInsets.only(left: 20),
-                              child: Text(
-                                'Linha ${i + 1}',
+                              child: Text(Linhas[i + 1]["titulo"].toString(),
                                 style: TextStyle(
                                   color: Colors.black,
                                   fontWeight: FontWeight.bold,
@@ -444,11 +458,10 @@ class _HomeState extends State<Home> {
                                 ),
                               ),
                             ),
-                            const Spacer(),
-                            const Padding(
+                            Spacer(),
+                            Padding(
                               padding: EdgeInsets.only(right: 20),
-                              child: Text(
-                                'Sem Problemas',
+                              child: Text(Linhas[i + 1]["estado"].toString(),
                                 style: TextStyle(
                                   color: Colors.green,
                                   fontWeight: FontWeight.bold,
