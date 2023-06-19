@@ -1,6 +1,5 @@
 import 'package:app_continental/TopAppBar.dart';
 import 'package:flutter/material.dart';
-
 import 'LowerAppBar.dart';
 import 'helpers/flutterfont.dart';
 
@@ -12,6 +11,9 @@ class UserList extends StatefulWidget {
 }
 
 class _UserListState extends State<UserList> {
+  List<String> funcionarios = ["José Rocha", "Patrício Simões"];
+  List<String> emails = ["jose.func@utad.pt", "patricio.func@utad.pt"];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -89,8 +91,71 @@ class _UserListState extends State<UserList> {
             ],
           ),
         ),
+        Container(
+            child: Expanded(
+          child: SingleChildScrollView(
+            child: Container(
+              child: Column(
+                children: [
+                  for (int i = 0; i < funcionarios.length; i++)
+                    Container(
+                      decoration: const BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                            color: Colors.black,
+                            width: 2.0,
+                          ),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Image.asset(
+                              'assets/images/operario.png',
+                              width: 50,
+                              height: 50,
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.only(left: 20),
+                            child: Text(
+                              funcionarios[i].toString(),
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 24,
+                              ),
+                            ),
+                          ),
+                          Spacer(),
+                          Padding(
+                            padding: EdgeInsets.only(right: 20),
+                            child: Text(
+                              emails[i].toString(),
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 24,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  Padding(
+                    padding: EdgeInsets.only(top: 32),
+                    child: Text(
+                      "NOTA: A listagem de utilizadores não está implementada",
+                      style: TextStyle(
+                          color: Colors.red, fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ))
       ]),
-      bottomNavigationBar: const LowerAppBar(),
     );
   }
 }

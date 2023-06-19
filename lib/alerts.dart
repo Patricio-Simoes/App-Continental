@@ -24,7 +24,6 @@ Future<String?> getToken() async {
 Future<List<AvariaNotification>> getAvarias() async {
   final token = await getToken();
   final url = Uri.http('192.168.28.86:7071', 'Alert/GetMaintenanceMessages');
-  print("Token: $token");
 
   final response = await http.get(
     url,
@@ -34,9 +33,7 @@ Future<List<AvariaNotification>> getAvarias() async {
     },
   );
 
-  print("Código de resposta: ${response.statusCode}");
   final body = jsonDecode(response.body);
-  print("Corpo de mensagem: $body");
 
   if (body is List) {
     final notifications = body
@@ -62,11 +59,7 @@ void updateAvaria(String? nLinha) async {
   try {
     Response response = await dio
         .put('http://192.168.28.86:7071/Alert/AcknowledgeMaintenanceMessage?id=${int.parse(nLinha!)}');
-    print(response);
-    print("Atualizado com sucesso!");
   } on DioError catch (e) {
-    print('Error: ${e.error}');
-    print('Error info: ${e.response?.data}');
   }
 }
 
@@ -122,10 +115,10 @@ class _AlertsState extends State<Alerts> {
                     builder: (context, snapshot) {
                       if (snapshot.hasData) {
                         List<AvariaNotification> alertas = snapshot.data!;
-                        // Sort the alertas list based on prioridade
                         alertas.sort((a, b) => int.parse(b.prioridade).compareTo(int.parse(a.prioridade)));
                         return SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.40,
+                          // Valor temporário.
+                          height: MediaQuery.of(context).size.height * 0.853,
                           child: ListView.builder(
                             itemCount: alertas.length,
                             itemBuilder: (context, index) {
@@ -271,7 +264,6 @@ class _AlertsState extends State<Alerts> {
           ),
         ],
       ),
-      bottomNavigationBar: const LowerAppBar(),
     );
   }
 }

@@ -97,14 +97,14 @@ class _DisplayAlertInfoState extends State<DisplayAlertInfo> {
                                 // Adjust the width as needed
                               },
                               children: [
-                                // Nome do Funcionário.
+                                // Email do Funcionário.
                                 TableRow(
                                   children: [
                                     const Padding(
                                       padding:
                                       EdgeInsets.symmetric(vertical: 25),
                                       child: Text(
-                                        "Nome do Funcionário:",
+                                        "Email do Funcionário:",
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 24,
@@ -252,7 +252,6 @@ class _DisplayAlertInfoState extends State<DisplayAlertInfo> {
                   )),
             ],
           )),
-      bottomNavigationBar: const LowerAppBar(),
     );
   }
 }

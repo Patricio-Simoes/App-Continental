@@ -114,7 +114,6 @@ class _FactoryLinesState extends State<FactoryLines> {
               )),
         ],
       ),
-      bottomNavigationBar: LowerAppBar(),
     );
   }
 }
