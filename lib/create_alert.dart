@@ -42,8 +42,6 @@ class _CreateAlertState extends State<CreateAlert> {
     try {
       Response response = await dio
           .post('http://192.168.28.86:7071/Alert/SendAlert', data: data);
-      print(response);
-      print("Enviado com sucesso!");
     } on DioError catch (e) {
       print('Error: ${e.error}');
       print('Error info: ${e.response?.data}');
@@ -403,7 +401,6 @@ class _CreateAlertState extends State<CreateAlert> {
                   )),
             ],
           )),
-      bottomNavigationBar: const LowerAppBar(),
     );
   }
 }

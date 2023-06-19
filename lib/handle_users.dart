@@ -316,7 +316,6 @@ class handle_usersState extends State<handle_users> {
               )
             ],
           )),
-      bottomNavigationBar: const LowerAppBar(),
     );
   }
 }

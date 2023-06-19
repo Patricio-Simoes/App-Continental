@@ -2,14 +2,18 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:app_continental/alert_info.dart';
 import 'package:app_continental/create_alert.dart';
+import 'package:dart_amqp/dart_amqp.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:app_continental/TopAppBar.dart';
 import 'package:app_continental/LowerAppBar.dart';
 import 'package:app_continental/helpers/flutterfont.dart';
 import 'package:http/http.dart' as http;
 import 'package:dio/dio.dart';
 import 'AvariaNotification.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+List<AvariaNotification> alertas = List.empty();
 
 class Home extends StatefulWidget {
   String? emailUtilizador = "";
@@ -29,11 +33,49 @@ class _HomeState extends State<Home> {
     return user?.getIdToken();
   }
 
+  void _setupRabbitMQ() async {
+    ConnectionSettings settings = ConnectionSettings(
+      host: "192.168.28.86",
+    );
+    Client client = Client(settings: settings);
+    client.channel().then((Channel channel) async {
+      Queue queue = await channel.queue(
+        "notification",
+      );
+      Exchange exchange = await channel.exchange(
+        "alertas",
+        ExchangeType.TOPIC,
+      );
+      Consumer consumer = await exchange.bindQueueConsumer(
+        "notification",
+        ["alerts.maintenance.new"],
+      );
+      print("Rabbit listening...");
+      consumer.listen((AmqpMessage message) {
+        print("[x] Received Alert: ${message.payloadAsJson}");
+
+        var payload = message.payloadAsString != null
+        ? jsonDecode(message.payloadAsString)
+        : null;
+        String? linhaId = payload != null ? payload['linhaId'] : null;
+
+        navigateToPage();
+
+      });
+    });
+  }
+
+  void navigateToPage() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => Home()),
+    );
+  }
+
   // Método responsável por receber as avarias enviadas pela API.
   Future<List<AvariaNotification>> getAvarias() async {
     final token = await getToken();
     final url = Uri.http('192.168.28.86:7071', 'Alert/GetMaintenanceMessages');
-    print("Token: $token");
 
     final response = await http.get(
       url,
@@ -43,9 +85,7 @@ class _HomeState extends State<Home> {
       },
     );
 
-    print("Código de resposta: ${response.statusCode}");
     final body = jsonDecode(response.body);
-    print("Corpo de mensagem: $body");
 
     if (body is List) {
       final notifications = body
@@ -58,6 +98,7 @@ class _HomeState extends State<Home> {
     }
   }
 
+
   // Método responsável por marcar avarias existentes como resolvidas.
   void updateAvaria(String? nLinha) async {
     User? user = FirebaseAuth.instance.currentUser;
@@ -69,23 +110,35 @@ class _HomeState extends State<Home> {
     dio.options.headers['content-Type'] = 'application/json';
     dio.options.headers["authorization"] = "Bearer ${token ?? ''}";
 
-    final data = {
-      'estado': false,
-    };
-
     try {
       Response response = await dio
-          .patch('http://192.168.28.86:7071/Alert/AcknowledgeMaintenanceMessage?id=${int.parse(nLinha!)}', data: data);
-      print(response);
-      print("Enviado com sucesso!");
+          .put('http://192.168.28.86:7071/Alert/AcknowledgeMaintenanceMessage?id=${int.parse(nLinha!)}');
     } on DioError catch (e) {
       print('Error: ${e.error}');
       print('Error info: ${e.response?.data}');
     }
   }
 
+  List generateLinhas(List linhas){
+    for(int i = 0; i <= nLinhas; i++) {
+      Map<String, dynamic> linha = Map();
+      linha["titulo"] = "${i}";
+      linha["estado"] = "Sem Problemas";
+      linhas.add(linha);
+    }
+
+    return linhas;
+  }
+
   @override
+
   Widget build(BuildContext context) {
+
+    List Linhas = generateLinhas([]);
+
+    _setupRabbitMQ();
+    navigatorKey: navigatorKey;
+
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(75),
@@ -224,9 +277,7 @@ class _HomeState extends State<Home> {
                     future: getAvarias(),
                     builder: (context, snapshot) {
                       if (snapshot.hasData) {
-                        List<AvariaNotification> alertas = snapshot.data!;
-
-                        // Sort the alertas list based on prioridade
+                        alertas = snapshot.data!;
                         alertas.sort((a, b) => int.parse(b.prioridade).compareTo(int.parse(a.prioridade)));
                         return SizedBox(
                           height: MediaQuery.of(context).size.height * 0.40,
@@ -236,11 +287,14 @@ class _HomeState extends State<Home> {
                               final avaria = alertas[index];
                               Color avariaTileColor;
                               if (avaria.prioridade == '1') {
+                                Linhas[avaria.linhaID]["estado"] = "Avaria nv.1";
                                 avariaTileColor = Colors.green;
                               } else if (avaria.prioridade == '2') {
                                 avariaTileColor = Colors.yellow;
+                                Linhas[avaria.linhaID]["estado"] = "Avaria nv.2";
                               } else if (avaria.prioridade == '3') {
                                 avariaTileColor = Colors.red;
+                                Linhas[avaria.linhaID]["estado"] = "Avaria nv.3";
                               } else {
                                 avariaTileColor = Colors.transparent;
                               }
@@ -272,7 +326,10 @@ class _HomeState extends State<Home> {
                                               padding: EdgeInsets.only(top: 16, right: 32, bottom: 16),
                                               child: ElevatedButton(
                                                 onPressed: () {
-                                                  updateAvaria(avaria.linhaID.toString());
+                                                  updateAvaria(avaria.id.toString());
+                                                  setState(() {
+                                                    alertas.removeWhere((avaria) => avaria.id.toString() == avaria.id.toString());
+                                                  });
                                                   Navigator.pop(context);
                                                 },
                                                 child:
@@ -435,8 +492,7 @@ class _HomeState extends State<Home> {
                             ),
                             Padding(
                               padding: EdgeInsets.only(left: 20),
-                              child: Text(
-                                'Linha ${i + 1}',
+                              child: Text(Linhas[i + 1]["titulo"].toString(),
                                 style: TextStyle(
                                   color: Colors.black,
                                   fontWeight: FontWeight.bold,
@@ -444,11 +500,10 @@ class _HomeState extends State<Home> {
                                 ),
                               ),
                             ),
-                            const Spacer(),
-                            const Padding(
+                            Spacer(),
+                            Padding(
                               padding: EdgeInsets.only(right: 20),
-                              child: Text(
-                                'Sem Problemas',
+                              child: Text(Linhas[i + 1]["estado"].toString(),
                                 style: TextStyle(
                                   color: Colors.green,
                                   fontWeight: FontWeight.bold,
