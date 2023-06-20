@@ -55,8 +55,8 @@ class _HomeState extends State<Home> {
         print("[x] Received Alert: ${message.payloadAsJson}");
 
         var payload = message.payloadAsString != null
-        ? jsonDecode(message.payloadAsString)
-        : null;
+            ? jsonDecode(message.payloadAsString)
+            : null;
         String? linhaId = payload != null ? payload['linhaId'] : null;
 
         navigateToPage();
@@ -68,7 +68,8 @@ class _HomeState extends State<Home> {
   void navigateToPage() {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => Home()),
+      MaterialPageRoute(builder: (context) => Home(emailUtilizador: FirebaseAuth.instance.currentUser
+          ?.displayName.toString())),
     );
   }
 
@@ -117,6 +118,9 @@ class _HomeState extends State<Home> {
       print('Error: ${e.error}');
       print('Error info: ${e.response?.data}');
     }
+
+    navigateToPage();
+
   }
 
   List generateLinhas(List linhas){
